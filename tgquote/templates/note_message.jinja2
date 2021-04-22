@@ -2,17 +2,6 @@
 
 {% block message %}
 <div class="message note-message">
-  {% block userpic %}
-    <div class="author-user-pic">
-      <img src="{{
-            utils.base64ToUrl(
-              files.get_userpic(user_id),
-              'image/jpeg'
-            )
-          }}">
-    </div>
-  {% endblock %}
-
   {% block author %}
     <div class='author'>
     {% set forward_sender_name = utils.getForwardSenderName(message) %}

@@ -5,21 +5,13 @@ from . import utils
 import typing
 
 env = Environment(
-    loader=FileSystemLoader('./templates'),
+    loader=FileSystemLoader("./templates"),
     enable_async=True,
 )
 
 
-async def messagesToHtml(
-    messages: typing.List[dict],
-    env: Environment = env,
-    **kwargs
-  ):
-  template = env.get_template('index.jinja2')
+async def messagesToHtml(messages: typing.List[dict], env: Environment = env, **kwargs):
+    template = env.get_template("index.jinja2")
 
-  html = await template.render_async(
-    messages = messages,
-    utils = utils,
-    **kwargs
-  )
-  return html
+    html = await template.render_async(messages=messages, utils=utils, **kwargs)
+    return html

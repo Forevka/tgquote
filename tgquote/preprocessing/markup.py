@@ -18,21 +18,28 @@ class TextDecoration(ABC):
         # if entity['type'] in {"bot_command", "url", "mention", "phone_number"}:
         #     # This entities should not be changed
         #     return text
-        if entity['type'] in {"bold", "italic", "code", "underline", "strikethrough"}:
-            return cast(str, getattr(self, entity['type'])(value=text))
-        if entity['type'] == "pre":
+        if entity["type"] in {"bold", "italic", "code", "underline", "strikethrough"}:
+            return cast(str, getattr(self, entity["type"])(value=text))
+        if entity["type"] == "pre":
             return (
-                self.pre_language(value=text, language=entity['language'])
-                if entity['language']
+                self.pre_language(value=text, language=entity["language"])
+                if entity["language"]
                 else self.pre(value=text)
             )
-        if entity['type'] == "text_mention":
+        if entity["type"] == "text_mention":
 
             return self.link(value=text, link=f"tg://user?id={0}")
-        if entity['type'] == "text_link":
-            return self.link(value=text, link=cast(str, entity['url']))
-        if entity['type'] in {"bot_command", "url", "mention", "phone_number", "hashtag", "cashtag"}:
-            return self.link(value=text, link='example.com')
+        if entity["type"] == "text_link":
+            return self.link(value=text, link=cast(str, entity["url"]))
+        if entity["type"] in {
+            "bot_command",
+            "url",
+            "mention",
+            "phone_number",
+            "hashtag",
+            "cashtag",
+        }:
+            return self.link(value=text, link="example.com")
 
         return self.quote(text)
 
@@ -46,7 +53,8 @@ class TextDecoration(ABC):
         """
         return "".join(
             self._unparse_entities(
-                self._add_surrogates(text), sorted(entities, key=lambda item: item['offset']) if entities else []
+                self._add_surrogates(text),
+                sorted(entities, key=lambda item: item["offset"]) if entities else [],
             )
         )
 
@@ -62,15 +70,17 @@ class TextDecoration(ABC):
         length = length or len(text)
 
         for index, entity in enumerate(entities):
-            if entity['offset'] * 2 < offset:
+            if entity["offset"] * 2 < offset:
                 continue
-            if entity['offset'] * 2 > offset:
-                yield self.quote(self._remove_surrogates(text[offset : entity['offset'] * 2]))
-            start = entity['offset'] * 2
-            offset = entity['offset'] * 2 + entity['length'] * 2
+            if entity["offset"] * 2 > offset:
+                yield self.quote(
+                    self._remove_surrogates(text[offset : entity["offset"] * 2])
+                )
+            start = entity["offset"] * 2
+            offset = entity["offset"] * 2 + entity["length"] * 2
 
             sub_entities = list(
-                filter(lambda e: e['offset'] * 2 < (offset or 0), entities[index + 1 :])
+                filter(lambda e: e["offset"] * 2 < (offset or 0), entities[index + 1 :])
             )
             yield self.apply_entity(
                 entity,
@@ -86,11 +96,11 @@ class TextDecoration(ABC):
 
     @staticmethod
     def _add_surrogates(text: str):
-        return text.encode('utf-16-le')
+        return text.encode("utf-16-le")
 
     @staticmethod
     def _remove_surrogates(text: bytes):
-        return text.decode('utf-16-le')
+        return text.decode("utf-16-le")
 
     @abstractmethod
     def link(self, value: str, link: str) -> str:  # pragma: no cover
@@ -188,29 +198,29 @@ class MarkdownDecoration(TextDecoration):
     def quote(self, value: str) -> str:
         return re.sub(pattern=self.MARKDOWN_QUOTE_PATTERN, repl=r"\\\1", string=value)
 
+
 html_decoration = HtmlDecoration()
 markdown_decoration = MarkdownDecoration()
 
 
 def markup(messages: dict):
-  for message in messages:
-    text = message.get('text') or message.get('caption')
-    entities = message.get('entities', []) or message.get('caption_entities', [])
-    if not text:
-    	continue
+    for message in messages:
+        text = message.get("text") or message.get("caption")
+        entities = message.get("entities", []) or message.get("caption_entities", [])
+        if not text:
+            continue
 
-    # for entity in entities:
-    # 	text = html_decoration.apply_entity(entity, text)
-    text = html_decoration.unparse(text, entities)
-    text = text.replace('\n', '<br>')
+        # for entity in entities:
+        # 	text = html_decoration.apply_entity(entity, text)
+        text = html_decoration.unparse(text, entities)
+        text = text.replace("\n", "<br>")
 
-    if message.get('text'):
-    	message['text'] = text
-    if message.get('caption'):
-    	message['caption'] = text
+        if message.get("text"):
+            message["text"] = text
+        if message.get("caption"):
+            message["caption"] = text
 
-  return messages
+    return messages
 
-__all__ = [
-	'markup'
-]
+
+__all__ = ["markup"]
